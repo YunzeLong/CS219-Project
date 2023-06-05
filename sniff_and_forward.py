@@ -5,12 +5,12 @@ def copy_and_reroute(packet, new_dest_port):
     if TCP in packet:
 
         new_packet = packet.copy()
-        new_packet.dport = new_dest_port
-        new_packet.sport = get_self_port
+        new_packet.dport = int(new_dest_port)
+        new_packet.sport = int(get_self_port)
 
     elif UDP in packet:
         new_packet = packet.copy()
-        new_packet.dport = new_dest_port
+        new_packet.dport = int(new_dest_port)
     
     else: # currently only support TCP and UDP
         return None

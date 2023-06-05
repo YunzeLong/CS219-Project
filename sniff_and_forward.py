@@ -1,5 +1,4 @@
 from scapy.all import *
-import time
 import argparse
 
 def copy_and_reroute(packet, new_dest_port):
@@ -19,7 +18,7 @@ def copy_and_reroute(packet, new_dest_port):
     return new_packet
 
 
-def sniffer_and_filter(packet,lora_IP, lora_port):
+def sniff_and_filter(packet,lora_IP, lora_port):
     # print(packet)
     if TCP in packet:
         if IP in packet:
@@ -48,8 +47,11 @@ def sniffer_and_filter(packet,lora_IP, lora_port):
     # let's say we focus on TCP packets for now.
 
     elif UDP in packet:
-        pass
-        # print(packet.summary())  # Print UDP packet summary
+        print(packet.summary())  # Print UDP packet summary
+        print(f"Sending to {lora_IP} : {lora_port}")
+        packet_to_send = copy_and_reroute(packet, lora_port)
+        packet_to_send[IP].dst = lora_IP
+        send(packet_to_send)
 
     else: # ARP and more
         # print(packet.summary())  # Print summary of other packet types
@@ -60,7 +62,7 @@ def sniffer_and_filter(packet,lora_IP, lora_port):
 
 if __name__ == '__main__':
 
-    source_port, lora_port, lora_ip = 0,0, ""
+    source_port, lora_port, lora_IP = 0,0, ""
 
     # init parser
     parser = argparse.ArgumentParser(
@@ -84,15 +86,15 @@ if __name__ == '__main__':
 
     source_port = args.src_port
     lora_port = args.dst_port
-    lora_ip = args.dst_IP
+    lora_IP = args.dst_IP
     # end parsing
 
 
-    print(f"src port: {source_port}, dst port: {lora_port}, dst ip: {lora_ip}")
+    print(f"src port: {source_port}, dst port: {lora_port}, dst ip: {lora_IP}")
 
     # sniff for UL traffic
 
     # filter on port
-    sniff(filter = f'src port {source_port}', prn=lambda pkt: sniffer_and_filter(pkt, lora_ip, lora_port))
+    sniff(filter = f'src port {source_port}', prn=lambda pkt: sniff_and_filter(pkt, lora_IP, lora_port))
     # sniff(prn=sniffer_and_filter)
 

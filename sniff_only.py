@@ -1,6 +1,12 @@
 from scapy.all import *
 import argparse
 import json
+import base64
+
+# List of encodings to test
+encodings = ['utf-8', 'latin-1', 'utf-16', 'utf-16le', 'utf-16be']
+
+data_buffer = list()
 
 def sniff_on_port(packet):
     if UDP in packet:
@@ -16,17 +22,24 @@ def sniff_on_port(packet):
         try:
         # Decode the payload as JSON
             decoded_payload = json.loads(json_payload.decode('utf-8'))
-            print(json.dumps(decoded_payload, indent=4))
+            # print(json.dumps(decoded_payload, indent=4))
+            print("rxpk has length: " + str(len(decoded_payload)))
+            for i in range(len(decoded_payload)):
+                raw_data = decoded_payload["rxpk"][i]["data"]
+                base_64_decoded_data = base64.b64decode(raw_data).decode('utf-8')
+                print(base_64_decoded_data)
+                data_buffer.append(base_64_decoded_data)
 
         except:
-            pass
+            print(repr(json_payload))
+
     else:
         pass
 
 
 if __name__ == '__main__':
 
-    source_port = 0
+    dst_port = 0
     all_ports_flag = False
 
     # init parser
@@ -46,13 +59,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    source_port = args.src_port
+    dst_port = args.dst_port
     all_ports_flag = args.all_ports
-    print(f"Sniffing on port: {source_port}")
+    print(f"Sniffing on port: {dst_port}")
 
     if not all_ports_flag:
     # filter on port
-        sniff(filter = f'dst port {source_port}', prn=sniff_on_port)
+        sniff(filter = f'dst port {dst_port}', prn=sniff_on_port)
     
     else:
         sniff(prn=sniff_on_port)

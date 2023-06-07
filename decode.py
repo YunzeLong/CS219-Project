@@ -28,3 +28,10 @@ def key_collision_check(packet: bytes) -> bool:
         if mic == broken_mic:
             return True
     return False
+
+def filter_join_req(packet: bytes) -> bool:
+    length = len(packet)
+    header = packet[length - 1]
+    if header & 0b111 == 0:
+        return True
+    return False

@@ -1,9 +1,27 @@
 from scapy.all import *
 import argparse
-
+import json
 
 def sniff_on_port(packet):
-    print(packet.summary())
+    if UDP in packet:
+        print(packet.summary())
+        udp_packet = packet[UDP]
+        payload = udp_packet.load
+
+        # Find the starting position of the JSON content
+        start_position = payload.find(b'{')
+
+        # Extract the JSON portion
+        json_payload = payload[start_position:]
+        try:
+        # Decode the payload as JSON
+            decoded_payload = json.loads(json_payload.decode('utf-8'))
+            print(json.dumps(decoded_payload, indent=4))
+
+        except:
+            pass
+    else:
+        pass
 
 
 if __name__ == '__main__':
@@ -17,9 +35,9 @@ if __name__ == '__main__':
                     description='A simple sniffer on port specified',
                     epilog='^_^')
 
-    parser.add_argument('-p','--port', dest='src_port', action='store',
+    parser.add_argument('-p','--port', dest='dst_port', action='store',
                     default = 79,
-                    help='Specify the source port (Middle box) to listen on')
+                    help='Specify the port on middle box to listen on')
 
     parser.add_argument('-a','--all', dest='all_ports', action='store_true',
                     default = False,
@@ -30,11 +48,11 @@ if __name__ == '__main__':
 
     source_port = args.src_port
     all_ports_flag = args.all_ports
-    print(f"Sniffing on src port: {source_port}")
+    print(f"Sniffing on port: {source_port}")
 
     if not all_ports_flag:
     # filter on port
-        sniff(filter = f'src port {source_port}', prn=sniff_on_port)
+        sniff(filter = f'dst port {source_port}', prn=sniff_on_port)
     
     else:
         sniff(prn=sniff_on_port)

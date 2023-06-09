@@ -30,8 +30,8 @@ def sniff_on_port(packet):
                 base_64_decoded_data = base64.b64decode(raw_data)
                 if decode.filter_join_req(base_64_decoded_data):
                     print("join-req")
-                print(base_64_decoded_data.decode())
-                data_buffer.append(base_64_decoded_data)
+                    print(base_64_decoded_data.decode())
+                    data_buffer.append(base_64_decoded_data)
 
         except:
             print(repr(json_payload))

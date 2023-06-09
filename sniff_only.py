@@ -2,6 +2,7 @@ from scapy.all import *
 import argparse
 import json
 import base64
+import decode
 
 # List of encodings to test
 encodings = ['utf-8', 'latin-1', 'utf-16', 'utf-16le', 'utf-16be']
@@ -26,8 +27,10 @@ def sniff_on_port(packet):
             print("rxpk has length: " + str(len(decoded_payload)))
             for i in range(len(decoded_payload)):
                 raw_data = decoded_payload["rxpk"][i]["data"]
-                base_64_decoded_data = base64.b64decode(raw_data).decode('utf-8')
-                print(base_64_decoded_data)
+                base_64_decoded_data = base64.b64decode(raw_data)
+                if decode.filter_join_req(base_64_decoded_data):
+                    print("join-req")
+                print(base_64_decoded_data.decode())
                 data_buffer.append(base_64_decoded_data)
 
         except:

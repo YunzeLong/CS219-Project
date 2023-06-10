@@ -8,7 +8,7 @@ import base64
 broken_devices = set()
 
 
-def first_responder(jon_request: bytes):
+def first_responder(packet: bytes):
     # TODO: respond to the foul join request here
     pass
 

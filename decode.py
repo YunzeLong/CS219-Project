@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Hash import CMAC
+import base64
 
 broken_keys: list[bytes]
 
@@ -30,8 +31,14 @@ def key_collision_check(packet: bytes) -> bool:
     return False
 
 def filter_join_req(packet: bytes) -> bool:
-    length = len(packet)
-    header = packet[length - 1]
-    if header & 0b111 == 0:
+    header = packet[0]
+    if header & 0b11100000 == 0:
         return True
     return False
+
+if __name__ == '__main__':
+    sample = 'AAkAAAAAAACAAABQMiHx9yw9YyfFWg0='
+    sample_decoded = base64.b64decode(sample)
+    print(len(sample_decoded))
+    print(filter_join_req(sample_decoded))
+    print(sample_decoded.hex())

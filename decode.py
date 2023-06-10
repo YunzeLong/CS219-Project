@@ -22,8 +22,8 @@ def get_all_mic(payload: bytes) -> list[bytes]:
 
 def key_collision_check(packet: bytes) -> bool:
     length = len(packet)
-    payload = packet[4:length]
-    mic = packet[0:3]
+    payload = packet[0:length-4]
+    mic = packet[length-4:length]
     broken_mics = get_all_mic(payload)
     for broken_mic in broken_mics:
         if mic == broken_mic:

@@ -5,6 +5,14 @@ import decode
 import base64
 
 
+broken_devices = set()
+
+
+def first_responder(jon_request: bytes):
+    # TODO: respond to the foul join request here
+    pass
+
+
 def examine_packet(packet: bytes) -> bool:
     # look for json start point
     start_position = packet.find(b"{")
@@ -26,7 +34,16 @@ def examine_packet(packet: bytes) -> bool:
                 continue
             
             print('[join-request]')
+            
+            dev_eui = decode.extract_dev_eui(decoded_data)
+            if dev_eui in broken_devices:
+                print(f'[known-leaked-device] {dev_eui.hex()}')
+                return True
+
             if decode.key_collision_check(decoded_data):
+                broken_devices.add(dev_eui)
+                print(f'[new-leaked-device] {dev_eui.hex()}')
+                first_responder(decoded_data)
                 return True
     except:
         return False
@@ -94,8 +111,9 @@ if __name__ == "__main__":
         payload, addr = recv_socket.recvfrom(1024)  # buffer size is 1024 bytes
         print(f'begin packet: {addr}')
         print(payload)
+
         if (examine_packet(payload)): # type: ignore
-            print('[key-leaked]')
+            print('[skipped]')
         else:
             send_socket.sendto(payload, (CLOUD_IP, CLOUD_PORT))
             print('[forwarded]')

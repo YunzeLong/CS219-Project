@@ -1,15 +1,18 @@
 import smtplib
+from email.mime.text import MIMEText
 
 def send_mail(sender, sender_pswd, receiver):
     try:
         s = smtplib.SMTP('smtp.gmail.com',587)
         s.starttls()
         s.login(sender,sender_pswd)
-        message = """\
-        # Subject: test test\
-        guns, lots of guns"""
 
-        s.sendmail(sender,receiver,msg=message)
+        message = MIMEText('Please change your key.')
+        message['Subject'] = '[Warning] Your key is corrupted'
+        message['From'] = sender
+        message['To'] = receiver
+
+        s.send_message(message)
         s.quit()
         print("Successfully sent!")
     except Exception:

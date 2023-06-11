@@ -3,6 +3,7 @@ import json
 import socket
 import decode
 import base64
+import random
 
 
 broken_devices = set()
@@ -49,6 +50,19 @@ def examine_packet(packet: bytes) -> bool:
         return False
     finally:
         return False
+    
+
+def get_randomized_socket(ip) -> socket:
+    send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    success = False
+    while not success:
+        try:
+            rand_int = random.randint(49152, 65536)
+            send_socket.bind((ip, rand_int))
+            success = True
+        except:
+            success = False
+    return send_socket
 
 
 if __name__ == "__main__":
@@ -105,8 +119,6 @@ if __name__ == "__main__":
     recv_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
     recv_socket.bind((UDP_IP, UDP_PORT))
 
-    send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
     while True:
         payload, addr = recv_socket.recvfrom(1024)  # buffer size is 1024 bytes
         print(f'begin packet: {addr}')
@@ -115,6 +127,8 @@ if __name__ == "__main__":
         if (examine_packet(payload)): # type: ignore
             print('[skipped]')
         else:
+            send_socket = get_randomized_socket(UDP_IP)
             send_socket.sendto(payload, (CLOUD_IP, CLOUD_PORT))
+            send_socket.close()
             print('[forwarded]')
         print('end packet')

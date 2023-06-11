@@ -97,7 +97,7 @@ if __name__ == "__main__":
         action="store",
         type=int,
         default=1700,
-        help="Port this middle box is listening to",
+        help="Port this middle box will forward to",
     )
 
     args = parser.parse_args()
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     CLOUD_PORT = args.cld_port
 
     recv_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Internet  # UDP
-    recv_socket.bind((UDP_IP, UDP_PORT))
+    recv_socket.bind((UDP_IP, int(UDP_PORT)))
 
     send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
 

@@ -4,14 +4,18 @@ import socket
 import decode
 import base64
 import random
-
+import send_mail
 
 broken_devices = set()
 
 
 def first_responder(packet: bytes):
     # TODO: respond to the foul join request here
-    pass
+    sender = "lora.cs219@gmail.com"
+    sender_pswd = "rnppboitedgdxgbk"
+    receiver = "lora.cs219@gmail.com"
+    send_mail.send_mail(sender, sender_pswd, receiver)
+    
 
 
 def examine_packet(packet: bytes) -> bool:

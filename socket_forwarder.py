@@ -14,7 +14,8 @@ def first_responder(packet: bytes):
     sender = "lora.cs219@gmail.com"
     sender_pswd = "rnppboitedgdxgbk"
     receiver = "lora.cs219@gmail.com"
-    send_mail.send_mail(sender, sender_pswd, receiver)
+    key = "621156e57497eb32f619202c9bdb1bca"
+    send_mail.send_mail(sender, sender_pswd, receiver, key)
     
 
 
@@ -34,13 +35,18 @@ def examine_packet(packet: bytes) -> bool:
                 continue
 
             raw_data = rxpk_field["data"]
+            
             decoded_data = base64.b64decode(raw_data)
             if not decode.filter_join_req(decoded_data):
                 continue
             
-            print('[join-request]')
-            
+            join_eui = decode.extract_join_eui(decoded_data)
             dev_eui = decode.extract_dev_eui(decoded_data)
+            print(f'[join-request] raw data = {raw_data}')
+            print(f'[join-request] PhyPayload = {decoded_data.hex()}')
+            print(f'[join-request] JoinEUI = {join_eui.hex()}')
+            print(f'[join-request] DevEUI = {dev_eui.hex()}')
+            
             if dev_eui in broken_devices:
                 print(f'[known-leaked-device] {dev_eui.hex()}')
                 return True
@@ -115,12 +121,10 @@ if __name__ == "__main__":
     while True:
         payload, addr = recv_socket.recvfrom(1024)  # buffer size is 1024 bytes
         print(f'begin packet: {addr}')
-        print(payload)
 
         if (examine_packet(payload)): # type: ignore
             print('[skipped]')
         else:
             send_socket.sendto(payload, (CLOUD_IP, CLOUD_PORT))
-            send_socket.close()
             print('[forwarded]')
         print('end packet')

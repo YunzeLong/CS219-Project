@@ -23,4 +23,4 @@ if __name__ == '__main__':
     receiver = "longyunze2000@gmail.com"
     key = "621156e57497eb32f619202c9bdb1bca"
     dev_eui = "0000503221f1f72c"
-    send_mail(sender,sender_pswd,receiver, key) 
+    send_mail(sender,sender_pswd,receiver, key, dev_eui) 

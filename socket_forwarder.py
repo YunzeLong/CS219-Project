@@ -9,13 +9,13 @@ import send_mail
 broken_devices = set()
 
 
-def first_responder(packet: bytes):
+def first_responder(packet: bytes, dev_eui):
     # TODO: respond to the foul join request here
     sender = "lora.cs219@gmail.com"
     sender_pswd = "rnppboitedgdxgbk"
     receiver = "lora.cs219@gmail.com"
     key = "621156e57497eb32f619202c9bdb1bca"
-    send_mail.send_mail(sender, sender_pswd, receiver, key)
+    send_mail.send_mail(sender, sender_pswd, receiver, key, dev_eui.hex())
     
 
 
@@ -54,7 +54,7 @@ def examine_packet(packet: bytes) -> bool:
             if decode.key_collision_check(decoded_data):
                 broken_devices.add(dev_eui)
                 print(f'[new-leaked-device] {dev_eui.hex()}')
-                first_responder(decoded_data)
+                first_responder(decoded_data, dev_eui.hex())
                 return True
     except:
         return False

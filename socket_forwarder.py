@@ -1,10 +1,12 @@
 import argparse
 import json
 import socket
+import sys
 import decode
 import base64
-import random
 import send_mail
+import logger
+import time
 
 broken_devices = set()
 
@@ -18,8 +20,7 @@ def first_responder(packet: bytes, dev_eui):
     send_mail.send_mail(sender, sender_pswd, receiver, key, dev_eui.hex())
     
 
-
-def examine_packet(packet: bytes) -> bool:
+def examine_packet(packet: bytes, log: callable) -> bool:
     # look for json start point
     start_position = packet.find(b"{")
     json_payload = packet[start_position:]
@@ -42,24 +43,31 @@ def examine_packet(packet: bytes) -> bool:
             
             join_eui = decode.extract_join_eui(decoded_data)
             dev_eui = decode.extract_dev_eui(decoded_data)
-            print(f'[join-request] raw data = {raw_data}')
-            print(f'[join-request] PhyPayload = {decoded_data.hex()}')
-            print(f'[join-request] JoinEUI = {join_eui.hex()}')
-            print(f'[join-request] DevEUI = {dev_eui.hex()}')
+            log(f'[join-request] raw data = {raw_data}')
+            log(f'[join-request] PhyPayload = {decoded_data.hex()}')
+            log(f'[join-request] JoinEUI = {join_eui.hex()}')
+            log(f'[join-request] DevEUI = {dev_eui.hex()}')
             
             if dev_eui in broken_devices:
-                print(f'[known-leaked-device] {dev_eui.hex()}')
+                log(f'[known-leaked-device] {dev_eui.hex()}')
                 return True
 
             if decode.key_collision_check(decoded_data):
                 broken_devices.add(dev_eui)
-                print(f'[new-leaked-device] {dev_eui.hex()}')
+                log(f'[new-leaked-device] {dev_eui.hex()}')
                 first_responder(decoded_data, dev_eui.hex())
                 return True
     except:
         return False
     finally:
         return False
+    
+
+def signal_handler(sig, frame):
+    print('sigint captured, flushing log file ...')
+    logger.shutdown()
+    print('log flushed, terminating')
+    sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -106,6 +114,8 @@ if __name__ == "__main__":
         help="Port this middle box will forward to",
     )
 
+    logger.init(f'middle_box_{int(time.time())}.log')
+
     args = parser.parse_args()
     UDP_IP = args.dst_ip
     UDP_PORT = args.dst_port
@@ -122,7 +132,7 @@ if __name__ == "__main__":
         payload, addr = recv_socket.recvfrom(1024)  # buffer size is 1024 bytes
         print(f'begin packet: {addr}')
 
-        if (examine_packet(payload)): # type: ignore
+        if (examine_packet(payload, logger.writeline)):
             print('[skipped]')
         else:
             send_socket.sendto(payload, (CLOUD_IP, CLOUD_PORT))

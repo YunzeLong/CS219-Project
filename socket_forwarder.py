@@ -7,6 +7,7 @@ import base64
 import send_mail
 import logger
 import time
+import signal
 
 broken_devices = set()
 
@@ -17,7 +18,7 @@ def first_responder(packet: bytes, dev_eui):
     sender_pswd = "rnppboitedgdxgbk"
     receiver = "lora.cs219@gmail.com"
     key = "621156e57497eb32f619202c9bdb1bca"
-    send_mail.send_mail(sender, sender_pswd, receiver, key, dev_eui.hex())
+    send_mail.send_mail(sender, sender_pswd, receiver, key, dev_eui)
     
 
 def examine_packet(packet: bytes, log: callable) -> bool:
@@ -58,8 +59,6 @@ def examine_packet(packet: bytes, log: callable) -> bool:
                 first_responder(decoded_data, dev_eui.hex())
                 return True
     except:
-        return False
-    finally:
         return False
     
 
@@ -114,6 +113,8 @@ if __name__ == "__main__":
         help="Port this middle box will forward to",
     )
 
+    signal.signal(signal.SIGINT, signal_handler)
+
     logger.init(f'middle_box_{int(time.time())}.log')
 
     args = parser.parse_args()
@@ -130,11 +131,11 @@ if __name__ == "__main__":
 
     while True:
         payload, addr = recv_socket.recvfrom(1024)  # buffer size is 1024 bytes
-        print(f'begin packet: {addr}')
+        logger.writeline(f'begin packet: {addr}')
 
         if (examine_packet(payload, logger.writeline)):
-            print('[skipped]')
+            logger.writeline('[skipped]')
         else:
             send_socket.sendto(payload, (CLOUD_IP, CLOUD_PORT))
-            print('[forwarded]')
-        print('end packet')
+            logger.writeline('[forwarded]')
+        logger.writeline('end packet')

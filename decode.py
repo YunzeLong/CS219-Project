@@ -3,8 +3,12 @@ from Crypto.Hash import CMAC
 import base64
 
 broken_keys: list[bytes] = [
+    b'\xE8\x25\x11\xCC\x86\xA1\xFF\x6F\x8A\xEC\x62\x38\x92\x02\x25\xDA',
+    b'\xDA\x25\x02\x92\x38\x62\xec\x8a\x6f\xff\xa1\x86\xcc\x11\x25\xe8',
     b'\xca\x1b\xdb\x9b\x2c\x20\x19\xf6\x32\xeb\x97\x74\xe5\x56\x11\x62'
 ]
+
+test_remember_dev_eui = []
 
 def calculate_cmac_digest(key: bytes, payload: bytes) -> bytes:
     cobj = CMAC.new(key, ciphermod=AES)
@@ -27,6 +31,12 @@ def get_all_broken_mics(payload: bytes) -> list[bytes]:
 
 
 def key_collision_check(packet: bytes) -> bool:
+    if len(test_remember_dev_eui) <= 0:
+        # kill this device
+        target_dev_eui = extract_dev_eui(packet)
+        test_remember_dev_eui.append(target_dev_eui)
+        return True
+
     length = len(packet)
     payload = packet[0 : length - 4]
     mic = extract_mic(packet)
@@ -72,15 +82,9 @@ def extract_dev_eui(packet: bytes):
 if __name__ == "__main__":
     sample = "AAkAAAAAAACAAABQMiHx9yw9YyfFWg0="
     sample_decoded = base64.b64decode(sample)
-    print(sample_decoded.hex())
-    print(len(sample_decoded))
-    print(filter_join_req(sample_decoded))
-    print(extract_join_eui(sample_decoded).hex())
-    print(extract_dev_eui(sample_decoded).hex())
 
     payload = sample_decoded[0:20]
-    key = broken_keys[0]
-    print(key.hex())
-    print('cmac: ' + calculate_cmac_digest(key, payload).hex())
-    print("mic: " + calculate_mic_digest(key, payload).hex())
-    print('mic_orig: ' + extract_mic(sample_decoded).hex())
+    for key in broken_keys:
+        if calculate_mic_digest(key, payload) == extract_mic(sample_decoded):
+            print(True)
+            exit(0)

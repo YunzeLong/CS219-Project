@@ -7,4 +7,4 @@ CS 219, Spring 2023
 
 **Mentor: Zhaowei Tan**
 
-Current version depends on scapy, which requires winpcap on windows.
+socket_forwarder.py contains our most recent work for the middlebox.

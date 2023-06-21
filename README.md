@@ -7,7 +7,11 @@ CS 219, Spring 2023
 
 **Mentor: Zhaowei Tan**
 
-socket_forwarder.py contains our most recent work for the middlebox.
-
+socket_forwarder.py: Our most recent version of the middlebox.
+decode.py: Key-decode logic
+logger.py: Logger module
+send_mail.py: Email Module
+--------------------
 sniff_and_forward.py is decprecated.
+
 sniff_only.py is a passive sniffer and unrelated to the general workflow.
